@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getApiEndpoint } from '../api';
 
-const endpoint = getApiEndpoint('/api/workouts/');
+const codespace = process.env.REACT_APP_CODESPACE_NAME;
+const endpoint = codespace
+	? `https://${codespace}-8000.app.github.dev/api/workouts/`
+	: 'http://localhost:8000/api/workouts/';
 
 function Workouts() {
 	const [workouts, setWorkouts] = useState([]);
