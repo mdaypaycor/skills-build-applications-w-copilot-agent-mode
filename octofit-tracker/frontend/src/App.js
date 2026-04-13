@@ -6,7 +6,7 @@ import Leaderboard from './components/Leaderboard';
 import Teams from './components/Teams';
 import Users from './components/Users';
 import Workouts from './components/Workouts';
-import logo from '../docs/octofitapp-small.png';
+const logo = process.env.PUBLIC_URL + '/octofitapp-small.png';
 
 
 function App() {
