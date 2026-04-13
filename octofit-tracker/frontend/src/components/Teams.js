@@ -1,27 +1,48 @@
 import React, { useEffect, useState } from 'react';
+import { getApiEndpoint } from '../api';
 
-const codespace = process.env.REACT_APP_CODESPACE_NAME;
-const baseUrl = codespace ? `https://${codespace}-8000.app.github.dev` : 'http://localhost:8000';
-const endpoint = `${baseUrl}/api/teams/`;
+const endpoint = getApiEndpoint('/api/teams/');
 
 function Teams() {
 	const [teams, setTeams] = useState([]);
+	const [error, setError] = useState('');
 
 	useEffect(() => {
-		console.log('Fetching teams from:', endpoint);
-		fetch(endpoint)
-			.then(res => res.json())
-			.then(data => {
+		let isMounted = true;
+
+		const fetchTeams = async () => {
+			try {
+				const res = await fetch(endpoint);
+				if (!res.ok) {
+					throw new Error(`Request failed with status ${res.status}`);
+				}
+
+				const data = await res.json();
 				const results = data.results || data;
-				setTeams(results);
-				console.log('Fetched teams:', results);
-			});
+				if (isMounted) {
+					setTeams(results);
+					setError('');
+				}
+			} catch (err) {
+				if (isMounted) {
+					setTeams([]);
+					setError(err.message || 'Unable to load teams.');
+				}
+			}
+		};
+
+		fetchTeams();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	return (
 		<div className="card mb-4">
 			<div className="card-body">
 				<h2 className="card-title mb-4">Teams</h2>
+				{error && <div className="alert alert-warning">{error}</div>}
 				<div className="table-responsive">
 					<table className="table table-striped table-bordered">
 						<thead className="thead-dark">

@@ -1,27 +1,48 @@
 import React, { useEffect, useState } from 'react';
+import { getApiEndpoint } from '../api';
 
-const codespace = process.env.REACT_APP_CODESPACE_NAME;
-const baseUrl = codespace ? `https://${codespace}-8000.app.github.dev` : 'http://localhost:8000';
-const endpoint = `${baseUrl}/api/leaderboard/`;
+const endpoint = getApiEndpoint('/api/leaderboard/');
 
 function Leaderboard() {
 	const [entries, setEntries] = useState([]);
+	const [error, setError] = useState('');
 
 	useEffect(() => {
-		console.log('Fetching leaderboard from:', endpoint);
-		fetch(endpoint)
-			.then(res => res.json())
-			.then(data => {
+		let isMounted = true;
+
+		const fetchLeaderboard = async () => {
+			try {
+				const res = await fetch(endpoint);
+				if (!res.ok) {
+					throw new Error(`Request failed with status ${res.status}`);
+				}
+
+				const data = await res.json();
 				const results = data.results || data;
-				setEntries(results);
-				console.log('Fetched leaderboard:', results);
-			});
+				if (isMounted) {
+					setEntries(results);
+					setError('');
+				}
+			} catch (err) {
+				if (isMounted) {
+					setEntries([]);
+					setError(err.message || 'Unable to load leaderboard.');
+				}
+			}
+		};
+
+		fetchLeaderboard();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	return (
 		<div className="card mb-4">
 			<div className="card-body">
 				<h2 className="card-title mb-4">Leaderboard</h2>
+				{error && <div className="alert alert-warning">{error}</div>}
 				<div className="table-responsive">
 					<table className="table table-striped table-bordered">
 						<thead className="thead-dark">
